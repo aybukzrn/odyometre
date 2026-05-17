@@ -30,4 +30,20 @@ class ResponseParserTest {
                 responses
         );
     }
+
+    @Test
+    void nullAndBlankMessagesReturnEmpty() {
+        assertTrue(ResponseParser.parse(null).isEmpty());
+        assertTrue(ResponseParser.parse("").isEmpty());
+        assertTrue(ResponseParser.parse("   ").isEmpty());
+    }
+
+    @Test
+    void caseAndWhitespaceVariationsAreNormalized() {
+        // Seri porttan gelen mesajlar farklı casing veya boşluk içerebilir.
+        assertEquals(Optional.of(PatientResponse.HEARD), ResponseParser.parse("response"));
+        assertEquals(Optional.of(PatientResponse.HEARD), ResponseParser.parse("  Heard  "));
+        assertEquals(Optional.of(PatientResponse.NOT_HEARD), ResponseParser.parse("no_response"));
+        assertEquals(Optional.of(PatientResponse.NOT_HEARD), ResponseParser.parse("NO\n"));
+    }
 }

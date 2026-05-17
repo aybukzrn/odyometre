@@ -88,4 +88,53 @@ class HughsonWestlakeAlgorithmTest {
                 () -> HughsonWestlakeAlgorithm.initialState(Ear.RIGHT, 125)
         );
     }
+
+    @Test
+    void appliedResponseAfterThresholdFoundIsIdempotent() {
+        // Eşik bulunduktan sonra yeni cevap gelse bile state aynı kalmalı.
+        // Bu davranış kodda var (isCompleted kontrolü), ama testi yoktu.
+        AudiometryTestState completed = HughsonWestlakeAlgorithm.applyResponses(
+                Ear.RIGHT, 1000,
+                List.of(
+                        PatientResponse.HEARD,
+                        PatientResponse.HEARD,
+                        PatientResponse.NOT_HEARD,
+                        PatientResponse.NOT_HEARD,
+                        PatientResponse.HEARD
+                )
+        );
+        assertTrue(completed.threshold().isPresent());
+
+        AudiometryTestState afterExtraResponse =
+                HughsonWestlakeAlgorithm.applyResponse(completed, PatientResponse.NOT_HEARD);
+
+        assertEquals(completed, afterExtraResponse);
+    }
+
+    @Test
+    void nullResponseIsRejectedWithIllegalArgument() {
+        AudiometryTestState state = HughsonWestlakeAlgorithm.initialState(Ear.RIGHT, 1000);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> HughsonWestlakeAlgorithm.applyResponse(state, null)
+        );
+    }
+
+    @Test
+    void invalidIntensityIsRejected() {
+        // 5 dB adımları dışına çıkan değerler ve aralık dışı değerler reddedilmeli.
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> HughsonWestlakeAlgorithm.validateIntensity(42)
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> HughsonWestlakeAlgorithm.validateIntensity(125)
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> HughsonWestlakeAlgorithm.validateIntensity(-15)
+        );
+    }
 }
