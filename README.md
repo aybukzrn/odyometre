@@ -72,3 +72,15 @@ mvn test
 ---
 
 Hazır bir çalıştırma kılavuzu olarak bu dosyayı güncelleyebilir veya `pom.xml` içine `exec-maven-plugin` ekleyerek CLI tabanlı başlatmayı kolaylaştırabilirsiniz.
+
+
+## Algoritma Varsayımları
+
+Bu algoritma şu varsayımlarla yazılmıştır:
+- Eşik kriteri: aynı dB seviyesinde en az 2 HEARD yanıtı (ascending/descending ayrımı yapılmaz).
+- Başlangıç şiddeti: 40 dB (familiarization fazı kapsam dışı).
+- HEARD sonrası: -10 dB; NOT_HEARD sonrası: +5 dB; aralık [-10, 120] dB.
+
+Biyomedikal ekibinin IEC 60645-1 kural seti teslim edildiğinde 
+yukarıdaki varsayımlar gözden geçirilecek ve gerekirse algoritma 
+ile testler güncellenecektir.
