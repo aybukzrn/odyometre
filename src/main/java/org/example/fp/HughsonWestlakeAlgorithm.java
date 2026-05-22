@@ -13,6 +13,7 @@ public final class HughsonWestlakeAlgorithm {
     public static final int MIN_INTENSITY_DB = -10;
     public static final int MAX_INTENSITY_DB = 120;
     public static final int START_INTENSITY_DB = 40;
+    public static final int ASCENDING_RESPONSES_REQUIRED = 2;
 
     private HughsonWestlakeAlgorithm() {
     }
@@ -33,7 +34,13 @@ public final class HughsonWestlakeAlgorithm {
             throw new IllegalArgumentException("response must not be null");
         }
 
-        Trial newTrial = new Trial(state.frequencyHz(), state.currentIntensityDb(), response);
+        // Bu sunum "ascending" mi? Bir önceki yanıt NOT_HEARD ise seviye +5 ile YUKARI çıkılarak
+        // bu seviyeye gelinmiştir; klinik olarak ascending sunum budur. İlk sunum ve HEARD'den
+        // sonra inilen sunumlar descending sayılır (eşik sayımına dahil edilmez).
+        boolean ascending = !state.trials().isEmpty()
+                && state.trials().get(state.trials().size() - 1).response() == PatientResponse.NOT_HEARD;
+
+        Trial newTrial = new Trial(state.frequencyHz(), state.currentIntensityDb(), response, ascending);
         List<Trial> updatedTrials = append(state.trials(), newTrial);
         Optional<ThresholdResult> threshold = detectThreshold(state.ear(), state.frequencyHz(), updatedTrials);
         int nextIntensity = threshold.isPresent()
@@ -67,13 +74,16 @@ public final class HughsonWestlakeAlgorithm {
     public static Optional<ThresholdResult> detectThreshold(Ear ear, int frequencyHz, List<Trial> trials) {
         validateFrequency(frequencyHz);
 
-        Map<Integer, Long> heardCountsByIntensity = trials.stream()
+        // IEC 60645-1 / ISO 8253-1: eşik, aynı seviyede en az 2 (3 sunumdan) ASCENDING
+        // yanıtın HEARD olduğu en düşük şiddet seviyesidir. Descending yanıtlar sayılmaz.
+        Map<Integer, Long> ascendingHeardByIntensity = trials.stream()
                 .filter(trial -> trial.frequencyHz() == frequencyHz)
+                .filter(Trial::ascending)
                 .filter(trial -> trial.response() == PatientResponse.HEARD)
                 .collect(Collectors.groupingBy(Trial::intensityDb, Collectors.counting()));
 
-        return heardCountsByIntensity.entrySet().stream()
-                .filter(entry -> entry.getValue() >= 2)
+        return ascendingHeardByIntensity.entrySet().stream()
+                .filter(entry -> entry.getValue() >= ASCENDING_RESPONSES_REQUIRED)
                 .map(Map.Entry::getKey)
                 .min(Comparator.naturalOrder())
                 .map(thresholdDb -> new ThresholdResult(ear, frequencyHz, thresholdDb, evidenceFor(trials, frequencyHz, thresholdDb)));
@@ -112,6 +122,7 @@ public final class HughsonWestlakeAlgorithm {
         return trials.stream()
                 .filter(trial -> trial.frequencyHz() == frequencyHz)
                 .filter(trial -> trial.intensityDb() == thresholdDb)
+                .filter(Trial::ascending)
                 .filter(trial -> trial.response() == PatientResponse.HEARD)
                 .toList();
     }

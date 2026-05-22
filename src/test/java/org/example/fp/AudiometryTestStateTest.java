@@ -16,14 +16,14 @@ class AudiometryTestStateTest {
     void trialsListIsDefensivelyCopiedAndImmutable() {
         // Dışarıdan verilen mutable liste sonradan değiştirilse bile state'in trial'ları etkilenmemeli.
         List<Trial> mutableTrials = new ArrayList<>();
-        mutableTrials.add(new Trial(1000, 40, PatientResponse.HEARD));
+        mutableTrials.add(new Trial(1000, 40, PatientResponse.HEARD, false));
 
         AudiometryTestState state = new AudiometryTestState(
                 Ear.RIGHT, 1000, 40, mutableTrials, Optional.empty()
         );
 
         // Orijinal listeyi değiştir.
-        mutableTrials.add(new Trial(1000, 30, PatientResponse.HEARD));
+        mutableTrials.add(new Trial(1000, 30, PatientResponse.HEARD, false));
 
         // State içindeki trials etkilenmemeli.
         assertEquals(1, state.trials().size());
@@ -31,7 +31,7 @@ class AudiometryTestStateTest {
         // State'in döndürdüğü liste de modify edilemez olmalı.
         assertThrows(
                 UnsupportedOperationException.class,
-                () -> state.trials().add(new Trial(1000, 20, PatientResponse.NOT_HEARD))
+                () -> state.trials().add(new Trial(1000, 20, PatientResponse.NOT_HEARD, false))
         );
     }
 

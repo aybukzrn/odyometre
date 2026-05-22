@@ -39,7 +39,7 @@ class HughsonWestlakeAlgorithmTest {
 
         assertNotSame(initial, updated);
         assertTrue(initial.trials().isEmpty());
-        assertEquals(List.of(new Trial(1000, 40, PatientResponse.HEARD)), updated.trials());
+        assertEquals(List.of(new Trial(1000, 40, PatientResponse.HEARD, false)), updated.trials());
     }
 
     @Test
@@ -49,6 +49,9 @@ class HughsonWestlakeAlgorithmTest {
                 1000,
                 List.of(
                         PatientResponse.HEARD,
+                        PatientResponse.HEARD,
+                        PatientResponse.NOT_HEARD,
+                        PatientResponse.NOT_HEARD,
                         PatientResponse.HEARD,
                         PatientResponse.NOT_HEARD,
                         PatientResponse.NOT_HEARD,
@@ -68,6 +71,9 @@ class HughsonWestlakeAlgorithmTest {
                 500,
                 List.of(
                         PatientResponse.HEARD,
+                        PatientResponse.HEARD,
+                        PatientResponse.NOT_HEARD,
+                        PatientResponse.NOT_HEARD,
                         PatientResponse.HEARD,
                         PatientResponse.NOT_HEARD,
                         PatientResponse.NOT_HEARD,
@@ -97,6 +103,9 @@ class HughsonWestlakeAlgorithmTest {
                 Ear.RIGHT, 1000,
                 List.of(
                         PatientResponse.HEARD,
+                        PatientResponse.HEARD,
+                        PatientResponse.NOT_HEARD,
+                        PatientResponse.NOT_HEARD,
                         PatientResponse.HEARD,
                         PatientResponse.NOT_HEARD,
                         PatientResponse.NOT_HEARD,
